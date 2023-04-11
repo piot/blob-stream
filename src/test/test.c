@@ -17,10 +17,10 @@ typedef struct Mem {
     ImprintSlabAllocator slabAllocator;
 } Mem;
 
-static void createMemory(Mem* memory)
+static void createMemory(Mem* info)
 {
-    imprintLinearAllocatorInit(&memory->linearAllocator, memory, TESTA_MEMORY_SIZE, "all memory");
-    imprintSlabAllocatorInit(&memory->slabAllocator, &memory->linearAllocator, 2, 1, 1024, "slabAllocator");
+    imprintLinearAllocatorInit(&info->linearAllocator.info, memory, TESTA_MEMORY_SIZE, "all memory");
+    imprintSlabAllocatorInit(&info->slabAllocator.info, &info->linearAllocator, 12, 1, 5, "slabAllocator");
 }
 
 
