@@ -12,9 +12,9 @@ Serialized from payload holder to receiver.
 
 | type                |         octets | name                                                                                                                 |
 | :------------------ | -------------: | :------------------------------------------------------------------------------------------------------------------- |
-| uint8               |              1 | BLOB_STREAM_LOGIC_CMD_SET_CHUNK (1)                                                                                  |
+| uint8               |              1 | BLOB_STREAM_LOGIC_CMD_SET_CHUNK (0x01)                                                                                  |
 | [ChunkId](#chunkid) |              4 | The chunkId for the following data.                                                                                  |
-| uint16              |              2 | **octetCount** in this packet. Same as the Fixed Chunk Size (default 1024) for all chunks, except for the last one. |
+| uint16              |              2 | **octetCount** in this packet. Same as the Fixed Chunk Size (default 1024) for all chunks, except for maybe the last one. |
 | Payload             | **octetCount** | payload window content                                                                                               |
 
 ### Ack Set Chunk
@@ -23,7 +23,7 @@ Sent from the receiving end.
 
 | type                | octets | name                                                                                                 |
 | :------------------ | -----: | :--------------------------------------------------------------------------------------------------- |
-| uint8               |      1 | BLOB_STREAM_LOGIC_CMD_ACK_CHUNK (2)                                                                  |
+| uint8               |      1 | BLOB_STREAM_LOGIC_CMD_ACK_CHUNK (0x02)                                                                  |
 | [ChunkId](#chunkid) |      4 | **waitingForChunkId**                                                                                |
 | uint32              |      4 | **receiveMask**. Bit is 1 for each packet received and 0 for windows from **waitingForChunkId** + 1. |
 
