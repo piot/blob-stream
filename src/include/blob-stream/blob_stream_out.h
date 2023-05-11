@@ -1,7 +1,6 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Peter Bjorklund. All rights reserved.
- *  Licensed under the MIT License. See LICENSE in the project root for license
- *information.
+ *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 #ifndef BLOB_STREAM_OUT_H
 #define BLOB_STREAM_OUT_H
@@ -12,44 +11,40 @@
 #include <monotonic-time/monotonic_time.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 struct ImprintAllocatorWithFree;
 struct ImprintAllocator;
 
 typedef struct BlobStreamOutEntry {
-  const uint8_t *octets;
-  size_t octetCount;
-  BlobStreamChunkId chunkId;
-  MonotonicTimeMs lastSentAtTime;
-  size_t sendCount;
-  int isReceived;
+    const uint8_t* octets;
+    size_t octetCount;
+    BlobStreamChunkId chunkId;
+    MonotonicTimeMs lastSentAtTime;
+    size_t sendCount;
+    bool isReceived;
 } BlobStreamOutEntry;
 
 typedef struct BlobStreamOut {
-  size_t fixedChunkSize;
-  size_t octetCount;
-  size_t chunkCount;
-  const uint8_t *blob;
-  int isComplete;
-  BlobStreamOutEntry *entries;
-  struct ImprintAllocatorWithFree *blobAllocator;
-  Clog log;
+    size_t fixedChunkSize;
+    size_t octetCount;
+    size_t chunkCount;
+    const uint8_t* blob;
+    bool isComplete;
+    BlobStreamOutEntry* entries;
+    struct ImprintAllocatorWithFree* blobAllocator;
+    Clog log;
 } BlobStreamOut;
 
-void blobStreamOutInit(BlobStreamOut *self, struct ImprintAllocator *allocator,
-                       struct ImprintAllocatorWithFree *blobAllocator,
-                       const uint8_t *octets, size_t totalOctetCount,
+void blobStreamOutInit(BlobStreamOut* self, struct ImprintAllocator* allocator,
+                       struct ImprintAllocatorWithFree* blobAllocator, const uint8_t* octets, size_t totalOctetCount,
                        size_t fixedChunkSize, Clog log);
-void blobStreamOutDestroy(BlobStreamOut *self);
-void blobStreamOutReset(BlobStreamOut *self);
-int blobStreamOutIsComplete(const BlobStreamOut *self);
-void blobStreamOutMarkReceived(BlobStreamOut *self,
-                               BlobStreamChunkId everythingBeforeThis,
-                               BitArrayAtom maskReceived);
-int blobStreamOutGetChunksToSend(BlobStreamOut *self, MonotonicTimeMs now,
-                                 const BlobStreamOutEntry **resultEntries,
+void blobStreamOutDestroy(BlobStreamOut* self);
+void blobStreamOutReset(BlobStreamOut* self);
+bool blobStreamOutIsComplete(const BlobStreamOut* self);
+void blobStreamOutMarkReceived(BlobStreamOut* self, BlobStreamChunkId everythingBeforeThis, BitArrayAtom maskReceived);
+int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const BlobStreamOutEntry** resultEntries,
                                  size_t maxEntriesCount);
-const char *blobStreamOutToString(const BlobStreamOut *self, char *buf,
-                                  size_t maxBuf);
+const char* blobStreamOutToString(const BlobStreamOut* self, char* buf, size_t maxBuf);
 
 #endif

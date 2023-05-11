@@ -17,7 +17,6 @@ typedef struct BlobStreamLogicIn {
     BlobStreamIn* blobStream;
 } BlobStreamLogicIn;
 
-
 void blobStreamLogicInInit(BlobStreamLogicIn* self, BlobStreamIn* blobStream);
 int blobStreamLogicInReceive(BlobStreamLogicIn* self, struct FldInStream* inStream);
 int blobStreamLogicInSend(BlobStreamLogicIn* self, FldOutStream* outStream);

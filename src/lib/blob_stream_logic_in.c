@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 #include <blob-stream/blob_stream_logic_in.h>
-#include <flood/in_stream.h>
-#include <clog/clog.h>
 #include <blob-stream/commands.h>
+#include <clog/clog.h>
+#include <flood/in_stream.h>
 
 /// Initializes the receive logic for a blobstream
 /// @param self
@@ -33,7 +33,6 @@ static int setChunk(BlobStreamLogicIn* self, FldInStream* inStream)
     if (octetLength > self->blobStream->fixedChunkSize) {
         CLOG_ERROR("octetLength overrun %hu", octetLength)
     }
-
 
     blobStreamInSetChunk(self->blobStream, chunkId, inStream->p, octetLength);
     inStream->p += octetLength;
@@ -66,9 +65,9 @@ int blobStreamLogicInReceive(BlobStreamLogicIn* self, FldInStream* inStream)
 
 static void sendCommand(FldOutStream* outStream, uint8_t cmd)
 {
-  CLOG_INFO("BlobStreamLogicIn: SendCmd: %02X", cmd);
+    CLOG_VERBOSE("BlobStreamLogicIn: SendCmd: %02X", cmd);
 
-  fldOutStreamWriteUInt8(outStream, cmd);
+    fldOutStreamWriteUInt8(outStream, cmd);
 }
 
 /// Writes the receive status to the outstream
@@ -92,9 +91,8 @@ int blobStreamLogicInSend(BlobStreamLogicIn* self, FldOutStream* outStream)
 /// @param self
 void blobStreamLogicInClear(BlobStreamLogicIn* self)
 {
-  //blobStreamInClear(&self->blobStream);
+    // blobStreamInClear(&self->blobStream);
 }
-
 
 /// Frees up the memory for the logic
 /// @param self
@@ -104,6 +102,6 @@ void blobStreamLogicInDestroy(BlobStreamLogicIn* self)
 
 const char* blobStreamLogicInToString(const BlobStreamLogicIn* self, char* buf, size_t maxBuf)
 {
-    buf[0]=0;
+    buf[0] = 0;
     return buf;
 }

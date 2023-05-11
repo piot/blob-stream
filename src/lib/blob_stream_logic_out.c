@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 #include <blob-stream/blob_stream_logic_out.h>
-#include <flood/out_stream.h>
-#include <clog/clog.h>
 #include <blob-stream/commands.h>
+#include <clog/clog.h>
 #include <flood/in_stream.h>
+#include <flood/out_stream.h>
 
 /// Initializes the logic for sending a blob stream.
 /// @param self
 /// @param blobStream the blobStream to send.
 void blobStreamLogicOutInit(BlobStreamLogicOut* self, BlobStreamOut* blobStream)
 {
-  CLOG_VERBOSE("blobStreamLogicOutInit")
+    CLOG_VERBOSE("blobStreamLogicOutInit")
     self->blobStream = blobStream;
 }
 
@@ -23,25 +23,27 @@ void blobStreamLogicOutInit(BlobStreamLogicOut* self, BlobStreamOut* blobStream)
 /// @param entries the target entries
 /// @param maxEntriesCount maximum number of entries to fill
 /// @return returns the number of entries filled, or less than zero if an error occurred.
-int blobStreamLogicOutPrepareSend(BlobStreamLogicOut* self, MonotonicTimeMs now, const BlobStreamOutEntry* entries[], size_t maxEntriesCount)
+int blobStreamLogicOutPrepareSend(BlobStreamLogicOut* self, MonotonicTimeMs now, const BlobStreamOutEntry* entries[],
+                                  size_t maxEntriesCount)
 {
     return blobStreamOutGetChunksToSend(self->blobStream, now, entries, maxEntriesCount);
 }
 
-static void sendCommand(FldOutStream *outStream, uint8_t cmd)
+static void sendCommand(FldOutStream* outStream, uint8_t cmd)
 {
-  CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X", cmd);
-  fldOutStreamWriteUInt8(outStream, cmd);
+    CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X", cmd);
+    fldOutStreamWriteUInt8(outStream, cmd);
 }
 
 /// Serialize the specified entry to the target outStream.
 /// @param tempStream the target stream
 /// @param entry specifies which chunk (part) of the blob stream to serialize
 /// @return if error occurred it returns a negative error code.
-int blobStreamLogicOutSendEntry(FldOutStream *tempStream, const BlobStreamOutEntry* entry)
+int blobStreamLogicOutSendEntry(FldOutStream* tempStream, const BlobStreamOutEntry* entry)
 {
     if (tempStream->pos + 1100 > tempStream->size) {
-        CLOG_ERROR("stream is too small, needed room for a complete UDP payload (1100), but has:%zu", tempStream->size - tempStream->pos);
+        CLOG_ERROR("stream is too small, needed room for a complete UDP payload (1100), but has:%zu",
+                   tempStream->size - tempStream->pos);
         return -2;
     }
 
@@ -54,7 +56,7 @@ int blobStreamLogicOutSendEntry(FldOutStream *tempStream, const BlobStreamOutEnt
 /// Checks if the blob stream is fully received by the receiver.
 /// @param self
 /// @return if error occurred it returns a negative error code.
-int blobStreamLogicOutIsComplete(BlobStreamLogicOut* self)
+bool blobStreamLogicOutIsComplete(BlobStreamLogicOut* self)
 {
     return blobStreamOutIsComplete(self->blobStream);
 }
@@ -95,7 +97,7 @@ int blobStreamLogicOutReceive(BlobStreamLogicOut* self, struct FldInStream* inSt
         case BLOB_STREAM_LOGIC_CMD_ACK_CHUNK:
             return ackChunk(self, inStream);
         default:
-        CLOG_ERROR("blobStreamLogicOutReceive: Unknown command %02X", cmd)
+            CLOG_ERROR("blobStreamLogicOutReceive: Unknown command %02X", cmd)
     }
 }
 
@@ -112,6 +114,6 @@ void blobStreamLogicOutDestroy(BlobStreamLogicOut* self)
 /// @return
 const char* blobStreamLogicOutToString(const BlobStreamLogicOut* self, char* buf, size_t maxBuf)
 {
-    buf[0]=0;
+    buf[0] = 0;
     return buf;
 }

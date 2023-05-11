@@ -17,13 +17,13 @@ typedef struct BlobStreamLogicOut {
     BlobStreamOut* blobStream;
 } BlobStreamLogicOut;
 
-
 void blobStreamLogicOutInit(BlobStreamLogicOut* self, BlobStreamOut* blobStream);
-int blobStreamLogicOutPrepareSend(BlobStreamLogicOut* self, MonotonicTimeMs now, const BlobStreamOutEntry * entries[], size_t maxEntriesCount);
-int blobStreamLogicOutSendEntry(struct FldOutStream *tempStream, const BlobStreamOutEntry* entry);
+int blobStreamLogicOutPrepareSend(BlobStreamLogicOut* self, MonotonicTimeMs now, const BlobStreamOutEntry* entries[],
+                                  size_t maxEntriesCount);
+int blobStreamLogicOutSendEntry(struct FldOutStream* tempStream, const BlobStreamOutEntry* entry);
 int blobStreamLogicOutReceive(BlobStreamLogicOut* self, struct FldInStream* inStream);
 void blobStreamLogicOutDestroy(BlobStreamLogicOut* self);
 const char* blobStreamLogicOutToString(const BlobStreamLogicOut* self, char* buf, size_t maxBuf);
-int blobStreamLogicOutIsComplete(BlobStreamLogicOut* self);
+bool blobStreamLogicOutIsComplete(BlobStreamLogicOut* self);
 
 #endif
