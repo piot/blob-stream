@@ -13,17 +13,27 @@
 /// @param data
 /// @param octetCount
 /// @param fixedChunkSize
-void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, ImprintAllocatorWithFree* blobAllocator,
-                       const uint8_t* data, size_t octetCount, size_t fixedChunkSize, Clog log)
+void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, size_t octetCount, size_t fixedChunkSize,
+                       Clog log)
+{
+    self->entries = IMPRINT_ALLOC_TYPE_COUNT(allocator, BlobStreamOutEntry, self->chunkCount);
+    self->fixedChunkSize = fixedChunkSize;
+}
+
+/// Initializes a blobStream for sending
+/// @param self
+/// @param allocator
+/// @param blobAllocator
+/// @param data
+/// @param octetCount
+/// @param fixedChunkSize
+void blobStreamOutReInit(BlobStreamOut* self, const uint8_t* data, size_t octetCount, Clog log)
 {
     self->log = log;
     self->blob = data;
     self->octetCount = octetCount;
-    self->fixedChunkSize = fixedChunkSize;
     self->isComplete = false;
     self->chunkCount = (octetCount + self->fixedChunkSize - 1) / self->fixedChunkSize;
-    self->entries = IMPRINT_ALLOC_TYPE_COUNT(allocator, BlobStreamOutEntry, self->chunkCount);
-    self->blobAllocator = blobAllocator;
 
     for (size_t i = 0; i < self->chunkCount; ++i) {
         BlobStreamOutEntry* entry = &self->entries[i];
@@ -50,7 +60,6 @@ void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, Imprint
 /// @param self
 void blobStreamOutDestroy(BlobStreamOut* self)
 {
-    // IMPRINT_FREE(self->blobAllocator, self->entries);
     self->blob = 0;
 }
 
