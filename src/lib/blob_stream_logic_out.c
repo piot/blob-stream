@@ -9,7 +9,7 @@
 #include <flood/out_stream.h>
 
 /// Initializes the logic for sending a blob stream.
-/// @param self
+/// @param self outgoing stream logic
 /// @param blobStream the blobStream to send.
 void blobStreamLogicOutInit(BlobStreamLogicOut* self, BlobStreamOut* blobStream)
 {
@@ -18,7 +18,7 @@ void blobStreamLogicOutInit(BlobStreamLogicOut* self, BlobStreamOut* blobStream)
 }
 
 /// Calculates which chunks (parts) that needs to be resent.
-/// @param self
+/// @param self outgoing stream logic
 /// @param now the current time. Is used to figure out if the resend-timer has been triggered.
 /// @param entries the target entries
 /// @param maxEntriesCount maximum number of entries to fill
@@ -31,7 +31,7 @@ int blobStreamLogicOutPrepareSend(BlobStreamLogicOut* self, MonotonicTimeMs now,
 
 static void sendCommand(FldOutStream* outStream, uint8_t cmd)
 {
-    CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X", cmd);
+    CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X", cmd)
     fldOutStreamWriteUInt8(outStream, cmd);
 }
 
@@ -43,18 +43,18 @@ int blobStreamLogicOutSendEntry(FldOutStream* tempStream, const BlobStreamOutEnt
 {
     if (tempStream->pos + 1100 > tempStream->size) {
         CLOG_ERROR("stream is too small, needed room for a complete UDP payload (1100), but has:%zu",
-                   tempStream->size - tempStream->pos);
-        return -2;
+                   tempStream->size - tempStream->pos)
+        // return -2;
     }
 
     sendCommand(tempStream, BLOB_STREAM_LOGIC_CMD_SET_CHUNK);
     fldOutStreamWriteUInt32(tempStream, entry->chunkId);
-    fldOutStreamWriteUInt16(tempStream, entry->octetCount);
+    fldOutStreamWriteUInt16(tempStream, (uint16_t) entry->octetCount);
     return fldOutStreamWriteOctets(tempStream, entry->octets, entry->octetCount);
 }
 
 /// Checks if the blob stream is fully received by the receiver.
-/// @param self
+/// @param self outgoing stream logic
 /// @return if error occurred it returns a negative error code.
 bool blobStreamLogicOutIsComplete(BlobStreamLogicOut* self)
 {
@@ -75,14 +75,14 @@ static int ackChunk(BlobStreamLogicOut* self, FldInStream* inStream)
         return readLengthErr;
     }
 
-    blobStreamOutMarkReceived(self->blobStream, waitingForChunkId, receiveMask);
+    blobStreamOutMarkReceived(self->blobStream, (BlobStreamChunkId) waitingForChunkId, receiveMask);
 
     return 0;
 }
 
 /// Receive a blob stream command
 /// Only BLOB_STREAM_LOGIC_CMD_ACK_CHUNK is supported.
-/// @param self
+/// @param self outgoing stream logic
 /// @param inStream the stream to read from
 /// @return negative value if error was encountered.
 int blobStreamLogicOutReceive(BlobStreamLogicOut* self, struct FldInStream* inStream)
@@ -102,18 +102,22 @@ int blobStreamLogicOutReceive(BlobStreamLogicOut* self, struct FldInStream* inSt
 }
 
 /// Frees up the memory for the outgoing logic
-/// @param self
+/// @param self outgoing stream logic
 void blobStreamLogicOutDestroy(BlobStreamLogicOut* self)
 {
+    (void) self;
 }
 
 /// Returns a string describing the internal state of the outgoing logic. Not Implemented!
-/// @param self
-/// @param buf
-/// @param maxBuf
-/// @return
+/// @param self outgoing stream logic
+/// @param buf target character buffer
+/// @param maxBuf maximum number of characters for buffer
+/// @return buf
 const char* blobStreamLogicOutToString(const BlobStreamLogicOut* self, char* buf, size_t maxBuf)
 {
+    (void) self;
+    (void) maxBuf;
+
     buf[0] = 0;
     return buf;
 }

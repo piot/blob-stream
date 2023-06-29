@@ -21,3 +21,4 @@ _deps
 src/example/blob_stream_example
 src/lib/libblob_stream_lib.a
 src/test/blob_stream_test
+src/lib/libblob-stream.a

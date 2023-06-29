@@ -8,7 +8,7 @@
 /// Initialize a blob stream
 /// Allocates memory for a blob stream which is later defined by calling
 /// blobStreamInSetChunk().
-/// @param self the BlobStreamIn struct
+/// @param self incoming blob stream
 /// @param memory allocator for things that are not explicitly freed
 /// @param blobAllocator allocator for the target blob, freed in
 /// blobStreamInDestroy()
@@ -25,7 +25,7 @@ void blobStreamInInit(BlobStreamIn* self, struct ImprintAllocator* memory,
     self->fixedChunkSize = fixedChunkSize;
     self->isComplete = false;
     self->blobAllocator = blobAllocator;
-    int chunkCount = (octetCount + self->fixedChunkSize - 1) / self->fixedChunkSize;
+    size_t chunkCount = (octetCount + self->fixedChunkSize - 1) / self->fixedChunkSize;
     bitArrayInit(&self->bitArray, memory, chunkCount);
 
     CLOG_C_VERBOSE(&self->log, "initialize. Expecting %zu octets", self->octetCount)
@@ -40,18 +40,18 @@ void blobStreamInDestroy(BlobStreamIn* self)
 }
 
 /// Checks if the blob stream is complete
-/// \param self
-/// \return true if blob stream is completely received.
+/// @param self incoming blob stream
+/// @return true if blob stream is completely received.
 bool blobStreamInIsComplete(const BlobStreamIn* self)
 {
     return self->isComplete;
 }
 
 /// Sets a received chunk (part) to the blob memory
-/// \param self
-/// \param chunkId the zero based index of the chunk
-/// \param octets the blob octets of the chunk
-/// \param octetCount the number of octets in the chunk. Must be the
+/// @param self incoming blob stream
+/// @param chunkId the zero based index of the chunk
+/// @param octets the blob octets of the chunk
+/// @param octetCount the number of octets in the chunk. Must be the
 /// fixedChunkSize, apart from maybe the last chunk.
 void blobStreamInSetChunk(BlobStreamIn* self, BlobStreamChunkId chunkId, const uint8_t* octets, size_t octetCount)
 {
@@ -90,12 +90,15 @@ void blobStreamInSetChunk(BlobStreamIn* self, BlobStreamChunkId chunkId, const u
 }
 
 /// returns a debug string of the state of the blob stream. Not implemented.
-/// \param self
-/// \param buf
-/// \param maxBuf
-/// \return
+/// @param self incoming blob stream
+/// @param buf target char buffer
+/// @param maxBuf maximum number of characters in buf
+/// @return buf pointer
 const char* blobStreamInToString(const BlobStreamIn* self, char* buf, size_t maxBuf)
 {
+    (void) self;
+    (void) maxBuf;
+
     buf[0] = 0;
     return buf;
 }
