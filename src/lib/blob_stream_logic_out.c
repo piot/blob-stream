@@ -43,7 +43,7 @@ int blobStreamLogicOutSendEntry(FldOutStream* tempStream, const BlobStreamOutEnt
 {
     if (tempStream->pos + 1100 > tempStream->size) {
         CLOG_ERROR("stream is too small, needed room for a complete UDP payload (1100), but has:%zu",
-                   tempStream->size - tempStream->pos);
+                   tempStream->size - tempStream->pos)
         // return -2;
     }
 
