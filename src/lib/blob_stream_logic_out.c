@@ -31,7 +31,7 @@ int blobStreamLogicOutPrepareSend(BlobStreamLogicOut* self, MonotonicTimeMs now,
 
 static void sendCommand(FldOutStream* outStream, uint8_t cmd)
 {
-    CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X", cmd);
+    CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X", cmd)
     fldOutStreamWriteUInt8(outStream, cmd);
 }
 

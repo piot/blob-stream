@@ -65,7 +65,7 @@ int blobStreamLogicInReceive(BlobStreamLogicIn* self, FldInStream* inStream)
 
 static void sendCommand(FldOutStream* outStream, uint8_t cmd)
 {
-    CLOG_VERBOSE("BlobStreamLogicIn: SendCmd: %02X", cmd);
+    CLOG_VERBOSE("BlobStreamLogicIn: SendCmd: %02X", cmd)
 
     fldOutStreamWriteUInt8(outStream, cmd);
 }
