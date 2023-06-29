@@ -1,12 +1,11 @@
 cmake_minimum_required(VERSION 3.17)
-project(bit_array C)
+project(blob_stream C)
 
-set(CMAKE_C_STANDARD 99)
-
-
-if (WIN32)
-    add_compile_definitions(TORNADO_OS_WINDOWS 1)
-endif(WIN32)
-
+add_subdirectory("deps/piot/clog/src/lib")
+add_subdirectory("deps/piot/tiny-libc/src/lib")
+add_subdirectory("deps/piot/imprint/src/lib")
+add_subdirectory("deps/piot/bit-array/src/lib")
+add_subdirectory("deps/piot/flood-c/src/lib")
+add_subdirectory("deps/piot/monotonic-time-c/src/lib")
 add_subdirectory("lib")
-add_subdirectory("test")
+#add_subdirectory("test")

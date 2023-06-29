@@ -7,12 +7,12 @@
 #include <stdbool.h>
 
 /// Initializes a blobStream for sending
-/// @param self
-/// @param allocator
-/// @param blobAllocator
-/// @param data
-/// @param octetCount
-/// @param fixedChunkSize
+/// @param self outgoing blob stream
+/// @param allocator allocator for internal book keeping entries
+/// @param blobAllocator not really used
+/// @param data the payload to send out
+/// @param octetCount the number of octets in the data payload
+/// @param fixedChunkSize the size of each chunk to send out (except the last one). Usually 1024.
 void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, ImprintAllocatorWithFree* blobAllocator,
                        const uint8_t* data, size_t octetCount, size_t fixedChunkSize, Clog log)
 {
@@ -37,7 +37,7 @@ void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, Imprint
         } else {
             entry->octetCount = self->fixedChunkSize;
         }
-        entry->chunkId = i;
+        entry->chunkId = (BlobStreamChunkId)i;
         entry->lastSentAtTime = 0;
         entry->sendCount = 0;
         entry->isReceived = false;
@@ -47,7 +47,7 @@ void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, Imprint
 }
 
 /// Frees up the memory of the outgoing blob stream
-/// @param self
+/// @param self outgoing blob stream
 void blobStreamOutDestroy(BlobStreamOut* self)
 {
     // IMPRINT_FREE(self->blobAllocator, self->entries);
@@ -55,7 +55,7 @@ void blobStreamOutDestroy(BlobStreamOut* self)
 }
 
 /// Checks if the blobStream is fully received by the receiver.
-/// @param self
+/// @param self outgoing blob stream
 /// @return true if received
 bool blobStreamOutIsComplete(const BlobStreamOut* self)
 {
@@ -63,7 +63,7 @@ bool blobStreamOutIsComplete(const BlobStreamOut* self)
 }
 
 /// Marks chunks as received.
-/// @param self
+/// @param self outgoing blob stream
 /// @param everythingBeforeThis all chunks before this index should be marked
 /// as received.
 /// @param maskReceived the bits that are set should also be marked as received.
@@ -109,7 +109,7 @@ void blobStreamOutMarkReceived(BlobStreamOut* self, BlobStreamChunkId everything
 }
 
 /// Calculates which chunks that needs to be sent
-/// @param self
+/// @param self outgoing blob stream
 /// @param now current time
 /// @param resultEntries the resulting entries that needs to be sent/resent.
 /// @param maxEntriesCount the maximum size of the resultEntries
@@ -140,7 +140,7 @@ int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const
             CLOG_C_VERBOSE(&self->log, "send chunkId %04X", entry->chunkId)
 
             if (resultCount == maxEntriesCount) {
-                return resultCount;
+                return (int) resultCount;
             }
         } else {
             // CLOG_OUTPUT_STDERR("blobStreamOut: not sending: %zu (%zu) %zu %d",
@@ -148,17 +148,20 @@ int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const
         }
     }
 
-    return resultCount;
+    return (int)resultCount;
 }
 
 /// Returns a string describing the internal state of the outgoing blob stream.
 /// Not implemented!
-/// @param self
-/// @param buf
-/// @param maxBuf
-/// @return
+/// @param self outgoing blob stream
+/// @param buf target character buffer
+/// @param maxBuf maximum number of characters to write to buf
+/// @return buf
 const char* blobStreamOutToString(const BlobStreamOut* self, char* buf, size_t maxBuf)
 {
+    (void) self;
+    (void) maxBuf;
+
     buf[0] = 0;
     return buf;
 }

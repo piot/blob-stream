@@ -8,7 +8,7 @@
 #include <flood/in_stream.h>
 
 /// Initializes the receive logic for a blobstream
-/// @param self
+/// @param self incoming blob stream logic
 /// @param blobStream the blob stream to set chunks to.
 void blobStreamLogicInInit(BlobStreamLogicIn* self, BlobStreamIn* blobStream)
 {
@@ -34,7 +34,7 @@ static int setChunk(BlobStreamLogicIn* self, FldInStream* inStream)
         CLOG_ERROR("octetLength overrun %hu", octetLength)
     }
 
-    blobStreamInSetChunk(self->blobStream, chunkId, inStream->p, octetLength);
+    blobStreamInSetChunk(self->blobStream, (BlobStreamChunkId) chunkId, inStream->p, octetLength);
     inStream->p += octetLength;
     inStream->pos += octetLength;
 
@@ -43,9 +43,9 @@ static int setChunk(BlobStreamLogicIn* self, FldInStream* inStream)
 
 /// Receive a incoming blob stream command
 /// Only BLOB_STREAM_LOGIC_CMD_SET_CHUNK is supported.
-/// @param self
-/// @param inStream
-/// @return
+/// @param self incoming blob stream logic
+/// @param inStream stream to receive from
+/// @return negative on error
 int blobStreamLogicInReceive(BlobStreamLogicIn* self, FldInStream* inStream)
 {
     uint8_t cmd;
@@ -59,7 +59,7 @@ int blobStreamLogicInReceive(BlobStreamLogicIn* self, FldInStream* inStream)
             return setChunk(self, inStream);
         default:
             CLOG_ERROR("blobStreamLogicInReceive: Unknown command %02X", cmd)
-            return -2;
+            // return -2;
     }
 }
 
@@ -71,7 +71,7 @@ static void sendCommand(FldOutStream* outStream, uint8_t cmd)
 }
 
 /// Writes the receive status to the outstream
-/// @param self
+/// @param self incoming blob stream logic
 /// @param outStream stream where the BLOB_STREAM_LOGIC_CMD_ACK_CHUNK will be written to
 /// @return the result code. if less than zero it indicates and error.
 int blobStreamLogicInSend(BlobStreamLogicIn* self, FldOutStream* outStream)
@@ -81,27 +81,37 @@ int blobStreamLogicInSend(BlobStreamLogicIn* self, FldOutStream* outStream)
 
     CLOG_VERBOSE("blobStreamLogicIn: send. We are waiting for %04zX, mask %08X", waitingForChunkId, receiveMask)
     sendCommand(outStream, BLOB_STREAM_LOGIC_CMD_ACK_CHUNK);
-    fldOutStreamWriteUInt32(outStream, waitingForChunkId);
+    fldOutStreamWriteUInt32(outStream, (uint32_t) waitingForChunkId);
 
     return fldOutStreamWriteUInt32(outStream, receiveMask);
 }
 
 /// Clears the logic
 /// Similar to blobStreamLogicInInit(), but it reuses the same target blobStream.
-/// @param self
+/// @param self incoming blob stream logic
 void blobStreamLogicInClear(BlobStreamLogicIn* self)
 {
+    (void) self;
     // blobStreamInClear(&self->blobStream);
 }
 
 /// Frees up the memory for the logic
-/// @param self
+/// @param self incoming blob stream logic
 void blobStreamLogicInDestroy(BlobStreamLogicIn* self)
 {
+    (void) self;
 }
 
+/// creates debug string from internal state
+/// @param self incoming blob stream logic
+/// @param buf target char buffer
+/// @param maxBuf maximum char count for buf
+/// @return returns buf
 const char* blobStreamLogicInToString(const BlobStreamLogicIn* self, char* buf, size_t maxBuf)
 {
+    (void) self;
+    (void) maxBuf;
+
     buf[0] = 0;
     return buf;
 }
