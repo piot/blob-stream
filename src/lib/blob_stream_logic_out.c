@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 #include <blob-stream/blob_stream_logic_out.h>
 #include <blob-stream/commands.h>
-#include <clog/clog.h>
 #include <flood/in_stream.h>
 #include <flood/out_stream.h>
+#include <inttypes.h>
 
 /// Initializes the logic for sending a blob stream.
 /// @param self outgoing stream logic
@@ -74,6 +74,8 @@ static int ackChunk(BlobStreamLogicOut* self, FldInStream* inStream)
     if (readLengthErr < 0) {
         return readLengthErr;
     }
+
+    CLOG_VERBOSE("ack chunk: %d mask:%d", waitingForChunkId, receiveMask)
 
     blobStreamOutMarkReceived(self->blobStream, (BlobStreamChunkId) waitingForChunkId, receiveMask);
 

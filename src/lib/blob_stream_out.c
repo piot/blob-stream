@@ -84,7 +84,7 @@ void blobStreamOutMarkReceived(BlobStreamOut* self, BlobStreamChunkId everything
     // %04X", everythingBeforeThis)
     for (size_t i = 0; i < everythingBeforeThis; ++i) {
         BlobStreamOutEntry* entry = &self->entries[i];
-        entry->isReceived = 1;
+        entry->isReceived = true;
     }
     if (everythingBeforeThis == self->chunkCount) {
         self->isComplete = true;
@@ -101,7 +101,7 @@ void blobStreamOutMarkReceived(BlobStreamOut* self, BlobStreamChunkId everything
         }
         if (accumulator & 0x1) {
             BlobStreamOutEntry* entry = &self->entries[index];
-            entry->isReceived = 1;
+            entry->isReceived = true;
             CLOG_C_VERBOSE(&self->log, "remote has received chunkId %04zX", index)
         }
         accumulator = accumulator >> 1;
