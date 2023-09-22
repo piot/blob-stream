@@ -20,6 +20,7 @@ void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, Imprint
     self->blob = data;
     self->octetCount = octetCount;
     self->fixedChunkSize = fixedChunkSize;
+    CLOG_ASSERT(fixedChunkSize <= 1024, "only chunks up to 1024 is supported")
     self->isComplete = false;
     self->chunkCount = (octetCount + self->fixedChunkSize - 1) / self->fixedChunkSize;
     self->entries = IMPRINT_ALLOC_TYPE_COUNT(allocator, BlobStreamOutEntry, self->chunkCount);
@@ -121,11 +122,11 @@ int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const
         return 0;
     }
 
-    if (maxEntriesCount > 3) {
-        maxEntriesCount = 3;
+    if (maxEntriesCount > 5) {
+        maxEntriesCount = 5;
     }
 
-    static MonotonicTimeMs threshold = 500;
+    static MonotonicTimeMs threshold = 200;
     size_t resultCount = 0;
 
     for (size_t i = 0; i < self->chunkCount; ++i) {
