@@ -18,8 +18,8 @@ typedef struct Mem {
 
 static void createMemory(Mem* info)
 {
-    imprintLinearAllocatorInit(&info->linearAllocator.info, memory, TESTA_MEMORY_SIZE, "all memory");
-    imprintSlabAllocatorInit(&info->slabAllocator.info, &info->linearAllocator, 12, 1, 5, "slabAllocator");
+    imprintLinearAllocatorInit(&info->linearAllocator, memory, TESTA_MEMORY_SIZE, "all memory");
+    imprintSlabAllocatorInit(&info->slabAllocator, &info->linearAllocator.info, 12, 1, 5, "slabAllocator");
 }
 
 UTEST(BlobStreamIn, verifyChunkComplete)
@@ -34,7 +34,7 @@ UTEST(BlobStreamIn, verifyChunkComplete)
     log.constantPrefix = "test";
 #define TESTA_BLOB_SIZE (2231)
 
-    blobStreamInInit(&inStream, &memory.linearAllocator, &memory.slabAllocator, TESTA_BLOB_SIZE, BLOB_STREAM_CHUNK_SIZE,
+    blobStreamInInit(&inStream, &memory.linearAllocator.info, &memory.slabAllocator.info, TESTA_BLOB_SIZE, BLOB_STREAM_CHUNK_SIZE,
                      log);
 
     static uint8_t chunk[BLOB_STREAM_CHUNK_SIZE];
@@ -62,11 +62,49 @@ UTEST(BlobStreamOut, verifyChunkComplete)
     log.config = &g_clog;
     log.constantPrefix = "test";
 
-    blobStreamOutInit(&outStream, &memory.linearAllocator, &memory.slabAllocator, blob, TESTB_BLOB_SIZE,
+    blobStreamOutInit(&outStream, &memory.linearAllocator.info, &memory.slabAllocator.info, blob, TESTB_BLOB_SIZE,
                       BLOB_STREAM_CHUNK_SIZE, log);
     ASSERT_FALSE(blobStreamOutIsComplete(&outStream));
     blobStreamOutMarkReceived(&outStream, 0, 0x00000000);
     ASSERT_FALSE(blobStreamOutIsComplete(&outStream));
+    blobStreamOutMarkReceived(&outStream, 3, 0x00000000);
+    ASSERT_TRUE(blobStreamOutIsComplete(&outStream));
+
+    blobStreamOutDestroy(&outStream);
+}
+
+
+UTEST(BlobStreamOut, verifySentAll)
+{
+    Mem memory;
+    createMemory(&memory);
+
+    BlobStreamOut outStream;
+
+#define TESTB_BLOB_SIZE (2246)
+    static uint8_t blob[TESTB_BLOB_SIZE];
+
+    Clog log;
+    log.config = &g_clog;
+    log.constantPrefix = "test";
+
+    blobStreamOutInit(&outStream, &memory.linearAllocator.info, &memory.slabAllocator.info, blob, TESTB_BLOB_SIZE,
+                      BLOB_STREAM_CHUNK_SIZE, log);
+    ASSERT_FALSE(blobStreamOutIsComplete(&outStream));
+    ASSERT_FALSE(blobStreamOutIsAllSent(&outStream));
+    blobStreamOutMarkReceived(&outStream, 0, 0x00000000);
+    ASSERT_FALSE(blobStreamOutIsComplete(&outStream));
+    ASSERT_FALSE(blobStreamOutIsAllSent(&outStream));
+    ASSERT_FALSE(blobStreamOutIsAllSent(&outStream));
+
+    BlobStreamOutEntry* entries[4];
+    MonotonicTimeMs now = 99;
+    blobStreamOutGetChunksToSend(&outStream, now, &entries, 2);
+    ASSERT_FALSE(blobStreamOutIsAllSent(&outStream));
+
+    blobStreamOutGetChunksToSend(&outStream, now, &entries, 1);
+    ASSERT_TRUE(blobStreamOutIsAllSent(&outStream));
+
     blobStreamOutMarkReceived(&outStream, 3, 0x00000000);
     ASSERT_TRUE(blobStreamOutIsComplete(&outStream));
 

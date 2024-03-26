@@ -35,14 +35,20 @@ static void sendCommand(FldOutStream* outStream, uint8_t cmd)
     fldOutStreamWriteUInt8(outStream, cmd);
 }
 
+const static size_t BlobStreamLogicMaxEntryOctetSize = 1080;
+
 /// Serialize the specified entry to the target outStream.
 /// @param tempStream the target stream
 /// @param entry specifies which chunk (part) of the blob stream to serialize
 /// @return if error occurred it returns a negative error code.
 int blobStreamLogicOutSendEntry(FldOutStream* tempStream, const BlobStreamOutEntry* entry)
 {
-    if (tempStream->pos + 1100 > tempStream->size) {
-        CLOG_ERROR("stream is too small, needed room for a complete UDP payload (1100), but has:%zu",
+    if (entry->octetCount > BlobStreamLogicMaxEntryOctetSize) {
+
+    }
+
+    if (tempStream->pos + entry->octetCount + sizeof(uint32_t) + sizeof(uint16_t) > tempStream->size) {
+        CLOG_ERROR("stream is too small, needed room for a complete blob stream part (%zu), but has:%zu", BlobStreamLogicMaxEntryOctetSize,
                    tempStream->size - tempStream->pos)
         // return -2;
     }
@@ -55,10 +61,18 @@ int blobStreamLogicOutSendEntry(FldOutStream* tempStream, const BlobStreamOutEnt
 
 /// Checks if the blob stream is fully received by the receiver.
 /// @param self outgoing stream logic
-/// @return if error occurred it returns a negative error code.
+/// @return true if fully received
 bool blobStreamLogicOutIsComplete(BlobStreamLogicOut* self)
 {
     return blobStreamOutIsComplete(self->blobStream);
+}
+
+/// Checks if the blob stream is fully sent to the receiver.
+/// @param self outgoing stream logic
+/// @return true if all chunks are sent.
+bool blobStreamLogicOutIsAllSent(BlobStreamLogicOut* self)
+{
+    return blobStreamOutIsAllSent(self->blobStream);
 }
 
 static int ackChunk(BlobStreamLogicOut* self, FldInStream* inStream)

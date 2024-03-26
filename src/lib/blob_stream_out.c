@@ -25,6 +25,7 @@ void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, Imprint
     self->chunkCount = (octetCount + self->fixedChunkSize - 1) / self->fixedChunkSize;
     self->entries = IMPRINT_ALLOC_TYPE_COUNT(allocator, BlobStreamOutEntry, self->chunkCount);
     self->blobAllocator = blobAllocator;
+    self->sentChunkEntryCount = 0;
 
     for (size_t i = 0; i < self->chunkCount; ++i) {
         BlobStreamOutEntry* entry = &self->entries[i];
@@ -62,6 +63,15 @@ bool blobStreamOutIsComplete(const BlobStreamOut* self)
 {
     return self->isComplete;
 }
+
+/// Checks if the blobStream is fully sent (but not neccessarily recevied by the receiver).
+/// @param self outgoing blob stream
+/// @return true if all sent
+bool blobStreamOutIsAllSent(const BlobStreamOut* self)
+{
+    return self->sentChunkEntryCount == self->chunkCount;
+}
+
 
 /// Marks chunks as received.
 /// @param self outgoing blob stream
@@ -136,6 +146,10 @@ int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const
             resultEntries[resultCount] = entry;
             entry->lastSentAtTime = now;
             resultCount++;
+            if (!entry->sendCount) {
+                // First time we sent it
+                self->sentChunkEntryCount++;
+            }
             entry->sendCount++;
 
             CLOG_C_VERBOSE(&self->log, "send chunkId %04X", entry->chunkId)

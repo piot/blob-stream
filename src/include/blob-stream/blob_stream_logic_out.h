@@ -25,5 +25,6 @@ int blobStreamLogicOutReceive(BlobStreamLogicOut* self, struct FldInStream* inSt
 void blobStreamLogicOutDestroy(BlobStreamLogicOut* self);
 const char* blobStreamLogicOutToString(const BlobStreamLogicOut* self, char* buf, size_t maxBuf);
 bool blobStreamLogicOutIsComplete(BlobStreamLogicOut* self);
+bool blobStreamLogicOutIsAllSent(BlobStreamLogicOut* self);
 
 #endif

@@ -9,9 +9,9 @@
 #include <blob-stream/types.h>
 #include <clog/clog.h>
 #include <monotonic-time/monotonic_time.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 struct ImprintAllocatorWithFree;
 struct ImprintAllocator;
@@ -29,6 +29,7 @@ typedef struct BlobStreamOut {
     size_t fixedChunkSize;
     size_t octetCount;
     size_t chunkCount;
+    size_t sentChunkEntryCount;
     const uint8_t* blob;
     bool isComplete;
     BlobStreamOutEntry* entries;
@@ -42,6 +43,7 @@ void blobStreamOutInit(BlobStreamOut* self, struct ImprintAllocator* allocator,
 void blobStreamOutDestroy(BlobStreamOut* self);
 void blobStreamOutReset(BlobStreamOut* self);
 bool blobStreamOutIsComplete(const BlobStreamOut* self);
+bool blobStreamOutIsAllSent(const BlobStreamOut* self);
 void blobStreamOutMarkReceived(BlobStreamOut* self, BlobStreamChunkId everythingBeforeThis, BitArrayAtom maskReceived);
 int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const BlobStreamOutEntry** resultEntries,
                                  size_t maxEntriesCount);
