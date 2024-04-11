@@ -89,7 +89,7 @@ static int ackChunk(BlobStreamLogicOut* self, FldInStream* inStream)
         return readLengthErr;
     }
 
-    CLOG_VERBOSE("ack chunk: %d mask:%d", waitingForChunkId, receiveMask)
+    CLOG_VERBOSE("ack chunk: %u mask:%d", waitingForChunkId, receiveMask)
 
     blobStreamOutMarkReceived(self->blobStream, (BlobStreamChunkId) waitingForChunkId, receiveMask);
 
