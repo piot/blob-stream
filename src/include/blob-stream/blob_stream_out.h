@@ -34,6 +34,7 @@ typedef struct BlobStreamOut {
     bool isComplete;
     BlobStreamOutEntry* entries;
     struct ImprintAllocatorWithFree* blobAllocator;
+    MonotonicTimeMs thresholdForRedundancy;
     Clog log;
 } BlobStreamOut;
 

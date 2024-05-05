@@ -26,6 +26,7 @@ void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, Imprint
     self->entries = IMPRINT_ALLOC_TYPE_COUNT(allocator, BlobStreamOutEntry, self->chunkCount);
     self->blobAllocator = blobAllocator;
     self->sentChunkEntryCount = 0;
+    self->thresholdForRedundancy = 50;
 
     for (size_t i = 0; i < self->chunkCount; ++i) {
         BlobStreamOutEntry* entry = &self->entries[i];
@@ -39,7 +40,7 @@ void blobStreamOutInit(BlobStreamOut* self, ImprintAllocator* allocator, Imprint
         } else {
             entry->octetCount = self->fixedChunkSize;
         }
-        entry->chunkId = (BlobStreamChunkId)i;
+        entry->chunkId = (BlobStreamChunkId) i;
         entry->lastSentAtTime = 0;
         entry->sendCount = 0;
         entry->isReceived = false;
@@ -71,7 +72,6 @@ bool blobStreamOutIsAllSent(const BlobStreamOut* self)
 {
     return self->sentChunkEntryCount == self->chunkCount;
 }
-
 
 /// Marks chunks as received.
 /// @param self outgoing blob stream
@@ -136,13 +136,13 @@ int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const
         maxEntriesCount = 5;
     }
 
-    static MonotonicTimeMs threshold = 200;
     size_t resultCount = 0;
 
     for (size_t i = 0; i < self->chunkCount; ++i) {
         BlobStreamOutEntry* entry = &self->entries[i];
         if (!entry->isReceived &&
-            (((now - entry->lastSentAtTime > threshold) && entry->octetCount != 0) || entry->sendCount == 0)) {
+            (((now - entry->lastSentAtTime > self->thresholdForRedundancy) && entry->octetCount != 0) ||
+             entry->sendCount == 0)) {
             resultEntries[resultCount] = entry;
             entry->lastSentAtTime = now;
             resultCount++;
@@ -163,7 +163,7 @@ int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const
         }
     }
 
-    return (int)resultCount;
+    return (int) resultCount;
 }
 
 /// Returns a string describing the internal state of the outgoing blob stream.
