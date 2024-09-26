@@ -3,14 +3,11 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------------------*/
 
-#ifndef BLOB_STREAM_COMMANDS_H
-#define BLOB_STREAM_COMMANDS_H
+#ifndef BLOB_STREAM_DEBUG_H
+#define BLOB_STREAM_DEBUG_H
 
-#define BLOB_STREAM_LOGIC_CMD_SET_CHUNK (0x01)
-#define BLOB_STREAM_LOGIC_CMD_START_TRANSFER (0x02) // TODO: Make sure all CMD has unique values
+#include <stdint.h>
 
-
-#define BLOB_STREAM_LOGIC_CMD_ACK_CHUNK (0x02)
-#define BLOB_STREAM_LOGIC_CMD_ACK_START_TRANSFER (0x03)
+const char* blobStreamCmdToString(uint8_t cmd);
 
 #endif

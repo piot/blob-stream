@@ -5,6 +5,7 @@ add_library(blob-stream STATIC
   blob_stream_in.c
   blob_stream_logic_in.c
   blob_stream_logic_out.c
+        debug.c
   blob_stream_out.c)
 
 include(Tornado.cmake)

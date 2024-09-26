@@ -2,8 +2,10 @@
  *  Copyright (c) Peter Bjorklund. All rights reserved. https://github.com/piot/blob-stream
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------------------*/
+
 #include <blob-stream/blob_stream_logic_out.h>
 #include <blob-stream/commands.h>
+#include <blob-stream/debug.h>
 #include <flood/in_stream.h>
 #include <flood/out_stream.h>
 #include <inttypes.h>
@@ -11,10 +13,11 @@
 /// Initializes the logic for sending a blob stream.
 /// @param self outgoing stream logic
 /// @param blobStream the blobStream to send.
-void blobStreamLogicOutInit(BlobStreamLogicOut* self, BlobStreamOut* blobStream)
+void blobStreamLogicOutInit(BlobStreamLogicOut* self, BlobStreamOut* blobStream, BlobStreamTransferId transferId)
 {
     CLOG_VERBOSE("blobStreamLogicOutInit")
     self->blobStream = blobStream;
+    self->transferId = transferId;
 }
 
 /// Calculates which chunks (parts) that needs to be resent.
@@ -31,29 +34,38 @@ int blobStreamLogicOutPrepareSend(BlobStreamLogicOut* self, MonotonicTimeMs now,
 
 static void sendCommand(FldOutStream* outStream, uint8_t cmd)
 {
-    CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X", cmd)
+    CLOG_VERBOSE("BlobStreamLogicOut SendCmd: %02X %s", cmd, blobStreamCmdToString(cmd))
     fldOutStreamWriteUInt8(outStream, cmd);
 }
 
 const static size_t BlobStreamLogicMaxEntryOctetSize = 1080;
 
+int blobStreamLogicOutStartTransfer(BlobStreamLogicOut* self, FldOutStream* tempStream)
+{
+    sendCommand(tempStream, BLOB_STREAM_LOGIC_CMD_START_TRANSFER);
+    fldOutStreamWriteUInt16(tempStream, self->transferId);
+    fldOutStreamWriteUInt32(tempStream, (uint32_t) self->blobStream->octetCount);
+    return fldOutStreamWriteUInt16(tempStream, (uint16_t) self->blobStream->fixedChunkSize);
+}
+
 /// Serialize the specified entry to the target outStream.
 /// @param tempStream the target stream
 /// @param entry specifies which chunk (part) of the blob stream to serialize
 /// @return if error occurred it returns a negative error code.
-int blobStreamLogicOutSendEntry(FldOutStream* tempStream, const BlobStreamOutEntry* entry)
+int blobStreamLogicOutSendEntry(FldOutStream* tempStream, const BlobStreamOutEntry* entry,
+                                BlobStreamTransferId transferId)
 {
     if (entry->octetCount > BlobStreamLogicMaxEntryOctetSize) {
-
     }
 
     if (tempStream->pos + entry->octetCount + sizeof(uint32_t) + sizeof(uint16_t) > tempStream->size) {
-        CLOG_ERROR("stream is too small, needed room for a complete blob stream part (%zu), but has:%zu", BlobStreamLogicMaxEntryOctetSize,
-                   tempStream->size - tempStream->pos)
+        CLOG_ERROR("stream is too small, needed room for a complete blob stream part (%zu), but has:%zu",
+                   BlobStreamLogicMaxEntryOctetSize, tempStream->size - tempStream->pos)
         // return -2;
     }
 
     sendCommand(tempStream, BLOB_STREAM_LOGIC_CMD_SET_CHUNK);
+    fldOutStreamWriteUInt16(tempStream, transferId);
     fldOutStreamWriteUInt32(tempStream, entry->chunkId);
     fldOutStreamWriteUInt16(tempStream, (uint16_t) entry->octetCount);
     return fldOutStreamWriteOctets(tempStream, entry->octets, entry->octetCount);
@@ -75,21 +87,50 @@ bool blobStreamLogicOutIsAllSent(BlobStreamLogicOut* self)
     return blobStreamOutIsAllSent(self->blobStream);
 }
 
+static int ackStart(BlobStreamLogicOut* self, FldInStream* inStream)
+{
+    BlobStreamTransferId transferId;
+
+    int transferErr = fldInStreamReadUInt16(inStream, &transferId);
+    if (transferErr < 0) {
+        return transferErr;
+    }
+
+    if (transferId != self->transferId) {
+        CLOG_SOFT_ERROR("ack start for wrong transferId %04X vs %04X", transferId, self->transferId)
+        return -1;
+    }
+
+    return 0;
+}
+
 static int ackChunk(BlobStreamLogicOut* self, FldInStream* inStream)
 {
+    BlobStreamTransferId transferId;
+
+    int transferErr = fldInStreamReadUInt16(inStream, &transferId);
+    if (transferErr < 0) {
+        return transferErr;
+    }
+
     uint32_t waitingForChunkId;
     int readErr = fldInStreamReadUInt32(inStream, &waitingForChunkId);
     if (readErr < 0) {
         return readErr;
     }
 
-    uint32_t receiveMask;
-    int readLengthErr = fldInStreamReadUInt32(inStream, &receiveMask);
+    uint64_t receiveMask;
+    int readLengthErr = fldInStreamReadUInt64(inStream, &receiveMask);
     if (readLengthErr < 0) {
         return readLengthErr;
     }
 
-    CLOG_VERBOSE("ack chunk: %u mask:%u", waitingForChunkId, receiveMask)
+    if (transferId != self->transferId) {
+        CLOG_SOFT_ERROR("ack chunk for wrong transferId %04X vs %04X", transferId, self->transferId)
+        return -1;
+    }
+
+    CLOG_VERBOSE("ack chunk: %u mask:%" PRIx64, waitingForChunkId, receiveMask)
 
     blobStreamOutMarkReceived(self->blobStream, (BlobStreamChunkId) waitingForChunkId, receiveMask);
 
@@ -112,6 +153,8 @@ int blobStreamLogicOutReceive(BlobStreamLogicOut* self, struct FldInStream* inSt
     switch (cmd) {
         case BLOB_STREAM_LOGIC_CMD_ACK_CHUNK:
             return ackChunk(self, inStream);
+        case BLOB_STREAM_LOGIC_CMD_ACK_START_TRANSFER:
+            return ackStart(self, inStream);
         default:
             CLOG_ERROR("blobStreamLogicOutReceive: Unknown command %02X", cmd)
     }

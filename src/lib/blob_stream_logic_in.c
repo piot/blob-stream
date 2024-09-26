@@ -2,10 +2,13 @@
  *  Copyright (c) Peter Bjorklund. All rights reserved. https://github.com/piot/blob-stream
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------------------*/
+
 #include <blob-stream/blob_stream_logic_in.h>
 #include <blob-stream/commands.h>
 #include <clog/clog.h>
 #include <flood/in_stream.h>
+#include <inttypes.h>
+#include <blob-stream/debug.h>
 
 /// Initializes the receive logic for a blobstream
 /// @param self incoming blob stream logic
@@ -54,6 +57,8 @@ int blobStreamLogicInReceive(BlobStreamLogicIn* self, FldInStream* inStream)
         return cmdResult;
     }
 
+    CLOG_VERBOSE("BlobStreamLogicIn ReceiveCmd: %02X %s", cmd, blobStreamCmdToString(cmd))
+
     switch (cmd) {
         case BLOB_STREAM_LOGIC_CMD_SET_CHUNK:
             return setChunk(self, inStream);
@@ -79,11 +84,11 @@ int blobStreamLogicInSend(BlobStreamLogicIn* self, FldOutStream* outStream)
     size_t waitingForChunkId = bitArrayFirstUnset(&self->blobStream->bitArray);
     BitArrayAtom receiveMask = bitArrayGetAtomFrom(&self->blobStream->bitArray, waitingForChunkId + 1);
 
-    CLOG_VERBOSE("blobStreamLogicIn: send. We are waiting for %04zX, mask %08X", waitingForChunkId, receiveMask)
+    CLOG_VERBOSE("blobStreamLogicIn: send. We are waiting for %04zX, mask %" PRIx64, waitingForChunkId, receiveMask)
     sendCommand(outStream, BLOB_STREAM_LOGIC_CMD_ACK_CHUNK);
     fldOutStreamWriteUInt32(outStream, (uint32_t) waitingForChunkId);
 
-    return fldOutStreamWriteUInt32(outStream, receiveMask);
+    return fldOutStreamWriteUInt64(outStream, receiveMask);
 }
 
 /// Clears the logic

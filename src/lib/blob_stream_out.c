@@ -2,9 +2,11 @@
  *  Copyright (c) Peter Bjorklund. All rights reserved. https://github.com/piot/blob-stream
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------------------*/
+
 #include <blob-stream/blob_stream_out.h>
 #include <imprint/allocator.h>
 #include <stdbool.h>
+#include <inttypes.h>
 
 /// Initializes a blobStream for sending
 /// @param self outgoing blob stream
@@ -85,7 +87,7 @@ void blobStreamOutMarkReceived(BlobStreamOut* self, BlobStreamChunkId everything
         CLOG_C_ERROR(&self->log, "strange everythingBeforeThis")
     }
 
-    CLOG_C_VERBOSE(&self->log, "markReceived remote expecting %04X mask %08X", everythingBeforeThis, maskReceived)
+    CLOG_C_VERBOSE(&self->log, "markReceived remote expecting %04X mask %" PRIx64,  everythingBeforeThis, maskReceived)
 
     if (self->isComplete) {
         return;
@@ -152,7 +154,7 @@ int blobStreamOutGetChunksToSend(BlobStreamOut* self, MonotonicTimeMs now, const
             }
             entry->sendCount++;
 
-            CLOG_C_VERBOSE(&self->log, "send chunkId %04X", entry->chunkId)
+            CLOG_C_VERBOSE(&self->log, "send chunkIndex %04X", entry->chunkId)
 
             if (resultCount == maxEntriesCount) {
                 return (int) resultCount;

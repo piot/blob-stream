@@ -2,6 +2,7 @@
  *  Copyright (c) Peter Bjorklund. All rights reserved. https://github.com/piot/blob-stream
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------------------*/
+
 #include <blob-stream/blob_stream_in.h>
 #include <imprint/tagged_allocator.h>
 
