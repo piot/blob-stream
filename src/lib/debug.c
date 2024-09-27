@@ -13,9 +13,11 @@
 const char* blobStreamCmdToString(uint8_t cmd)
 {
     static const char* lookup[] = {
+        "_",
         "SetChunk",
+        "StartTransfer",
+        "AckStartTransfer",
         "AckChunk",
-        "StartTransfer"
     };
 
     if (cmd >= sizeof(lookup) / sizeof(lookup[0])) {
